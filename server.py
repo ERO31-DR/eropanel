@@ -9,7 +9,7 @@ import requests
 import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 verification_codes = {}
 
@@ -119,7 +119,7 @@ LOGIN_PAGE_HTML = """
         </div>
     </div>
     <script>
-        const API_URL = "https://eropanel.onrender.com/api";
+        const API_URL = "/api";
         function showToast(msg, type='success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -372,7 +372,7 @@ PANEL_PAGE_HTML = """
     </main>
 
     <script>
-        const API_URL = "https://eropanel.onrender.com/api";
+        const API_URL = "/api";
         let currentUser = JSON.parse(localStorage.getItem('eropanel_current_user'));
         if (!currentUser) { window.location.href = '/'; }
 
