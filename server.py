@@ -77,8 +77,8 @@ LOGIN_PAGE_HTML = """
         </div>
         <div class="bg-cardDark border border-borderSubtle rounded-3xl p-6 sm:p-8 shadow-2xl">
             <div class="flex bg-bgBase p-1 rounded-xl mb-6 border border-borderSubtle">
-                <button id="tab-login-btn" onclick="switchTab('login')" class="flex-1 py-2.5 rounded-lg text-xs font-bold bg-accentPrimary text-white shadow-md">Giriş Yap</button>
-                <button id="tab-register-btn" onclick="switchTab('register')" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-textMuted hover:text-white">Kayıt Ol</button>
+                <button type="button" id="tab-login-btn" onclick="switchTab('login')" class="flex-1 py-2.5 rounded-lg text-xs font-bold bg-accentPrimary text-white shadow-md">Giriş Yap</button>
+                <button type="button" id="tab-register-btn" onclick="switchTab('register')" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-textMuted hover:text-white">Kayıt Ol</button>
             </div>
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
                 <div>
@@ -92,7 +92,7 @@ LOGIN_PAGE_HTML = """
                 <button type="submit" class="w-full bg-accentPrimary hover:bg-accentHover text-white py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-500/20 mt-2">Sisteme Giriş Yap</button>
             </form>
             <div id="form-register" class="hidden">
-                <form id="step-register-fields" onsubmit="handleRegisterRequest(event)" class="space-y-4">
+                <div id="step-register-fields" class="space-y-4">
                     <div>
                         <label class="block text-xs font-medium text-textMuted mb-1.5">Kullanıcı Adı</label>
                         <input type="text" id="reg-username" required placeholder="Kullanıcı adı..." class="w-full bg-bgBase border border-borderSubtle text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-accentPrimary">
@@ -105,16 +105,16 @@ LOGIN_PAGE_HTML = """
                         <label class="block text-xs font-medium text-textMuted mb-1.5">Şifre</label>
                         <input type="password" id="reg-password" required placeholder="••••••••" class="w-full bg-bgBase border border-borderSubtle text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-accentPrimary">
                     </div>
-                    <button type="submit" id="btn-send-code" class="w-full bg-accentSuccess hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg mt-2">Kod Gönder</button>
-                </form>
-                <form id="step-verify-fields" onsubmit="handleVerifyCode(event)" class="space-y-4 hidden">
+                    <button type="button" id="btn-send-code" onclick="handleRegisterRequest()" class="w-full bg-accentSuccess hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-sm shadow-lg mt-2">Kod Gönder</button>
+                </div>
+                <div id="step-verify-fields" class="space-y-4 hidden">
                     <div class="text-center mb-4">
                         <h3 class="text-white font-bold text-sm">Onay Kodu Girin</h3>
                         <p class="text-xs text-textMuted mt-1" id="verify-email-text"></p>
                     </div>
                     <input type="text" id="reg-code" maxlength="6" required placeholder="6 Haneli Kod" class="w-full bg-bgBase border border-borderSubtle text-white rounded-xl px-4 py-3 text-center tracking-widest font-bold text-lg outline-none focus:border-accentPrimary">
-                    <button type="submit" class="w-full bg-accentSuccess text-white py-3.5 rounded-xl font-bold text-sm">Onayla & Kayıt Ol</button>
-                </form>
+                    <button type="button" onclick="handleVerifyCode()" class="w-full bg-accentSuccess text-white py-3.5 rounded-xl font-bold text-sm">Onayla & Kayıt Ol</button>
+                </div>
             </div>
         </div>
     </div>
@@ -142,18 +142,26 @@ LOGIN_PAGE_HTML = """
             }
         }
         let pendingUser = null;
-        async function handleRegisterRequest(e) {
-            e.preventDefault();
-            const btn = document.getElementById('btn-send-code');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
-            btn.disabled = true;
-
+        async function handleRegisterRequest() {
             const username = document.getElementById('reg-username').value.trim();
             const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value.trim();
-            
+
+            if(!username || !email || !password) {
+                showToast('Lütfen tüm alanları doldurun!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-send-code');
+            btn.innerHTML = 'Gönderiliyor...';
+            btn.disabled = true;
+
             try {
-                const res = await fetch(`${API_URL}/send-code`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, email})});
+                const res = await fetch(`${API_URL}/send-code`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, email})
+                });
                 const data = await res.json();
                 if(res.ok) {
                     pendingUser = {username, email, password};
@@ -161,7 +169,9 @@ LOGIN_PAGE_HTML = """
                     document.getElementById('step-verify-fields').classList.remove('hidden');
                     document.getElementById('verify-email-text').innerText = email;
                     showToast('Kod gönderildi!');
-                } else { showToast(data.error, 'error'); }
+                } else { 
+                    showToast(data.error || 'Hata oluştu', 'error'); 
+                }
             } catch(err) {
                 showToast('Bağlantı hatası!', 'error');
             } finally {
@@ -169,14 +179,28 @@ LOGIN_PAGE_HTML = """
                 btn.disabled = false;
             }
         }
-        async function handleVerifyCode(e) {
-            e.preventDefault();
+        async function handleVerifyCode() {
             const code = document.getElementById('reg-code').value.trim();
-            const res = await fetch(`${API_URL}/verify-and-register`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...pendingUser, code})});
-            if(res.ok) {
-                showToast('Kayıt başarılı!');
-                switchTab('login');
-            } else { showToast('Kod hatalı!', 'error'); }
+            if(!code) {
+                showToast('Lütfen onay kodunu girin!', 'error');
+                return;
+            }
+            try {
+                const res = await fetch(`${API_URL}/verify-and-register`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({...pendingUser, code})
+                });
+                const data = await res.json();
+                if(res.ok) {
+                    showToast('Kayıt başarılı!');
+                    switchTab('login');
+                } else { 
+                    showToast(data.error || 'Kod hatalı!', 'error'); 
+                }
+            } catch(err) {
+                showToast('Bağlantı hatası!', 'error');
+            }
         }
         async function handleLogin(e) {
             e.preventDefault();
@@ -293,44 +317,6 @@ PANEL_PAGE_HTML = """
                 <a href="#" onclick="openMenu(event, 'panel-adsoyad')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Ad Soyad (Kapsamlı)</a>
             </div>
 
-            <button onclick="toggleAccordion('acc-aile')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl text-sm transition-all">
-                <div class="flex items-center gap-3"><i class="fa-solid fa-sitemap w-5 text-center"></i> Aile & Sülale</div>
-                <i id="acc-aile-icon" class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"></i>
-            </button>
-            <div id="acc-aile" class="pl-11 space-y-1 mt-1 hidden">
-                <a href="#" onclick="openMenu(event, 'panel-aile')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Aile Sorgu</a>
-                <a href="#" onclick="openMenu(event, 'panel-sulale')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Sülale Sorgu</a>
-                <a href="#" onclick="openMenu(event, 'panel-cocuk')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Çocuk Sorgu</a>
-            </div>
-
-            <button onclick="toggleAccordion('acc-gsm')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl text-sm transition-all">
-                <div class="flex items-center gap-3"><i class="fa-solid fa-tower-cell w-5 text-center"></i> İletişim & GSM</div>
-                <i id="acc-gsm-icon" class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"></i>
-            </button>
-            <div id="acc-gsm" class="pl-11 space-y-1 mt-1 hidden">
-                <a href="#" onclick="openMenu(event, 'panel-gsmtc')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">GSM'den TC Bulma</a>
-                <a href="#" onclick="openMenu(event, 'panel-tcgsm')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">TC'den GSM Bulma</a>
-            </div>
-
-            <button onclick="toggleAccordion('acc-kurum')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl text-sm transition-all">
-                <div class="flex items-center gap-3"><i class="fa-solid fa-building-columns w-5 text-center"></i> Kurum & Diğer</div>
-                <i id="acc-kurum-icon" class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"></i>
-            </button>
-            <div id="acc-kurum" class="pl-11 space-y-1 mt-1 hidden">
-                <a href="#" onclick="openMenu(event, 'panel-adres')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Açık Adres Sorgu</a>
-                <a href="#" onclick="openMenu(event, 'panel-isyeri')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">İşyeri Bilgisi Sorgu</a>
-            </div>
-
-            <div class="pt-5 pb-2 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest">Yönetim & Destek</div>
-            
-            <a href="#" id="admin-menu-btn" onclick="openMenu(event, 'panel-admin')" class="nav-btn text-gray-400 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 hidden">
-                <i class="fa-solid fa-user-shield w-5 text-center text-red-500"></i> Admin Paneli
-            </a>
-            
-            <a href="#" onclick="openMenu(event, 'profilim')" class="nav-btn text-gray-400 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3">
-                <i class="fa-solid fa-user-gear w-5 text-center"></i> Profil & Ayarlar
-            </a>
-            
             <button onclick="logout()" class="w-full text-left text-accentDanger hover:text-white hover:bg-accentDanger/10 px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 mt-4">
                 <i class="fa-solid fa-right-from-bracket w-5 text-center"></i> Çıkış Yap
             </button>
@@ -339,19 +325,6 @@ PANEL_PAGE_HTML = """
 
     <!-- MAIN CONTENT -->
     <main class="flex-1 flex flex-col h-full bg-bgBase relative z-10 overflow-y-auto w-full">
-        <header class="hidden lg:flex h-20 items-center justify-between px-8 bg-panelDark/80 backdrop-blur-xl border-b border-borderSubtle sticky top-0 z-20">
-            <div>
-                <h2 id="page-title" class="text-xl font-bold text-white tracking-wide">Genel Bakış</h2>
-                <p id="page-subtitle" class="text-xs text-textMuted mt-0.5">Sistem istatistikleri ve hızlı erişim</p>
-            </div>
-            <div class="flex items-center gap-5">
-                <div class="bg-cardDark border border-borderSubtle px-4 py-2 rounded-xl flex items-center gap-3 text-sm shadow-inner">
-                    <div class="w-2.5 h-2.5 bg-accentSuccess rounded-full animate-pulse"></div>
-                    <span class="text-white font-medium text-xs tracking-wide">Sistem Güvenli & Aktif</span>
-                </div>
-            </div>
-        </header>
-
         <div class="p-4 sm:p-8 relative">
             <div class="max-w-[1600px] mx-auto w-full">
 
@@ -359,77 +332,38 @@ PANEL_PAGE_HTML = """
                 <div id="dashboard" class="page-content fade-in space-y-6">
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         <div class="glass-effect rounded-2xl p-6 relative overflow-hidden group">
-                            <h3 class="text-textMuted text-sm font-medium mb-1">Toplam Sorgu (Senin)</h3>
+                            <h3 class="text-textMuted text-sm font-medium mb-1">Toplam Sorgu</h3>
                             <div class="text-4xl font-black text-white" id="stat-user-queries">0</div>
-                        </div>
-                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden group">
-                            <h3 class="text-textMuted text-sm font-medium mb-1">Başarılı Sonuç</h3>
-                            <div class="text-4xl font-black text-white" id="stat-system-success">0</div>
-                        </div>
-                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden group">
-                            <h3 class="text-textMuted text-sm font-medium mb-1">Sistem Veritabanı</h3>
-                            <div class="text-4xl font-black text-white" id="stat-system-db">105M+</div>
-                        </div>
-                        <div class="glass-effect rounded-2xl p-6 relative overflow-hidden group border border-accentPrimary/30 bg-accentPrimary/5">
-                            <h3 class="text-accentPrimary text-sm font-bold mb-1">Plan Durumu</h3>
-                            <div class="text-3xl font-black text-white mt-1" id="stat-plan-status">Yükleniyor</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- 2. TC DETAY SORGU -->
                 <div id="panel-tc" class="page-content hidden fade-in space-y-6">
-                    <div class="bg-cardDark border border-borderSubtle rounded-2xl shadow-xl overflow-hidden">
-                        <div class="px-6 sm:px-8 py-5 border-b border-borderSubtle bg-panelDark">
-                            <h3 class="text-white font-bold">TC Kimlik Detaylı Analiz</h3>
+                    <div class="bg-cardDark border border-borderSubtle rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8">
+                        <h3 class="text-white font-bold mb-4">TC Kimlik Detaylı Analiz</h3>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <input type="text" id="api-tc-input" maxlength="11" placeholder="TC Kimlik No" class="w-full bg-bgBase border-2 border-borderSubtle text-white rounded-xl px-4 py-3.5 outline-none focus:border-accentPrimary">
+                            <button onclick="runProxyQuery('tc', {tc: document.getElementById('api-tc-input').value}, 'tc-result', 'tc-raw')" class="bg-accentPrimary text-white px-8 py-3.5 rounded-xl font-bold">Sorgula</button>
                         </div>
-                        <div class="p-6 sm:p-8">
-                            <div class="flex flex-col sm:flex-row gap-4">
-                                <input type="text" id="api-tc-input" maxlength="11" placeholder="TC Kimlik No" class="w-full bg-bgBase border-2 border-borderSubtle text-white text-base rounded-xl px-4 py-3.5 focus:outline-none focus:border-accentPrimary">
-                                <button onclick="runProxyQuery('tc', {tc: document.getElementById('api-tc-input').value}, 'tc-result', 'tc-raw')" class="bg-accentPrimary hover:bg-accentHover text-white px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg">
-                                    Sorgula
-                                </button>
-                            </div>
-                            <div id="tc-result" class="hidden mt-6 pt-6 border-t border-borderSubtle space-y-4">
-                                <div class="bg-panelDark border border-borderSubtle rounded-xl p-5">
-                                    <div id="tc-raw" class="api-raw-box">// Sonuç bekleniyor...</div>
-                                </div>
+                        <div id="tc-result" class="hidden mt-6 pt-6 border-t border-borderSubtle">
+                            <div class="bg-panelDark border border-borderSubtle rounded-xl p-5">
+                                <div id="tc-raw" class="api-raw-box">// Sonuç bekleniyor...</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Diğer paneller aynı mantıkta korunuyor -->
+                <!-- AD SOYAD -->
                 <div id="panel-adsoyad" class="page-content hidden fade-in space-y-6">
                     <div class="bg-cardDark border border-borderSubtle rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8">
-                        <h3 class="text-white font-bold mb-4">Ad Soyad Kapsamlı Filtreleme</h3>
+                        <h3 class="text-white font-bold mb-4">Ad Soyad Filtreleme</h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                             <input type="text" id="ad-input" placeholder="Ad" class="bg-bgBase border border-borderSubtle text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-accentPrimary">
                             <input type="text" id="soyad-input" placeholder="Soyad" class="bg-bgBase border border-borderSubtle text-white rounded-xl px-4 py-3 text-sm outline-none focus:border-accentPrimary">
                         </div>
                         <button onclick="runProxyQuery('adsoyad', {ad: document.getElementById('ad-input').value, soyad: document.getElementById('soyad-input').value}, 'adsoyad-result', 'adsoyad-raw')" class="bg-accentPrimary text-white px-6 py-3 rounded-xl font-bold">Filtrele</button>
                         <div id="adsoyad-result" class="hidden mt-6"><div id="adsoyad-raw" class="api-raw-box"></div></div>
-                    </div>
-                </div>
-
-                <!-- ADMIN -->
-                <div id="panel-admin" class="page-content hidden fade-in space-y-6">
-                    <div class="bg-cardDark border border-borderSubtle rounded-2xl shadow-xl overflow-hidden p-6 sm:p-8">
-                        <h3 class="text-white font-bold text-lg mb-4">Yönetim Paneli</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse" id="admin-members-table">
-                                <thead><tr class="border-b border-borderSubtle text-textMuted text-xs"><th class="py-3 px-4">Kullanıcı</th><th class="py-3 px-4">Rol</th></tr></thead>
-                                <tbody id="admin-members-tbody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PROFIL -->
-                <div id="profilim" class="page-content hidden fade-in space-y-6">
-                    <div class="bg-cardDark border border-borderSubtle rounded-2xl p-6 sm:p-8">
-                        <h3 class="text-white font-bold text-lg mb-4">Profil Bilgileri</h3>
-                        <p class="text-sm text-textMuted">Kullanıcı: <span id="profile-display-name" class="text-white font-bold"></span></p>
                     </div>
                 </div>
 
@@ -443,8 +377,7 @@ PANEL_PAGE_HTML = """
         if (!currentUser) { window.location.href = '/'; }
 
         function toggleMobileSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('-translate-x-full');
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
         }
 
         function openMenu(event, pageId) {
@@ -462,8 +395,6 @@ PANEL_PAGE_HTML = """
             if (currentUser) {
                 document.getElementById('sidebar-display-name').innerText = currentUser.username;
                 document.getElementById('sidebar-role-badge').innerText = currentUser.role;
-                document.getElementById('stat-plan-status').innerText = currentUser.role;
-                document.getElementById('profile-display-name').innerText = currentUser.username;
             }
         });
 
@@ -525,7 +456,6 @@ def send_code():
     verification_codes[email] = code
 
     sender_email = "erosorgu@gmail.com"
-    # Gmail Uygulama Şifresi (App Password)
     sender_password = "boia thcl owze vgir".replace(" ", "")
 
     msg = MIMEMultipart("alternative")
@@ -588,7 +518,6 @@ def get_stats():
         "database_records": system_stats["database_records"]
     })
 
-# Proxy endpoint örnekleri
 @app.route('/api/tc', methods=['GET'])
 def api_tc():
     tc = request.args.get('tc')
