@@ -446,11 +446,16 @@ def login():
 @app.route('/api/send-code', methods=['POST'])
 def send_code():
     data = request.json
-    email = data.get('email', '').strip()
+    email = data.get('email', '').strip().lower()
     username = data.get('username', '').strip()
     
     if not email or not email.endswith('@gmail.com'):
         return jsonify({"success": False, "error": "Geçersiz @gmail.com adresi!"}), 400
+
+    if any(u["username"].lower() == username.lower() for u in users_db):
+        return jsonify({"success": False, "error": "Bu kullanıcı adı zaten kullanımda!"}), 400
+    if any(u["email"].lower() == email.lower() for u in users_db):
+        return jsonify({"success": False, "error": "Bu e-posta adresi zaten kullanımda!"}), 400
 
     code = str(random.randint(100000, 999999))
     verification_codes[email] = code
@@ -475,9 +480,10 @@ def send_code():
     msg.attach(MIMEText(html, "html"))
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(sender_email, sender_password)
-            server.sendmail(sender_email, email, msg.as_string())
+        server = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, email, msg.as_string())
+        server.quit()
         return jsonify({"success": True, "message": "Kod gönderildi."})
     except Exception as e:
         return jsonify({"success": False, "error": f"Mail Gönderilemedi: {str(e)}"}), 500
@@ -486,7 +492,7 @@ def send_code():
 def verify_and_register():
     data = request.json
     username = data.get('username')
-    email = data.get('email')
+    email = data.get('email', '').strip().lower()
     password = data.get('password')
     code = data.get('code')
 
@@ -502,7 +508,9 @@ def verify_and_register():
         "queries_count": 0
     }
     users_db.append(new_user)
-    del verification_codes[email]
+    if email in verification_codes:
+        del verification_codes[email]
+        
     return jsonify({"success": True, "message": "Kayıt başarılı!"})
 
 @app.route('/api/users', methods=['GET'])
