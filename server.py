@@ -119,7 +119,7 @@ LOGIN_PAGE_HTML = """
         </div>
     </div>
     <script>
-        const API_URL = "/api";
+        const API_URL = "https://eropanel.onrender.com/api";
         function showToast(msg, type='success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -337,7 +337,7 @@ PANEL_PAGE_HTML = """
 
             <div class="pt-5 pb-2 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest">Yönetim & Destek</div>
             
-            <!-- ADMIN PANELİ (Sadece Admin ve Founder görür) -->
+            <!-- ADMIN PANELİ -->
             <a href="#" id="admin-menu-btn" onclick="openMenu(event, 'panel-admin')" class="nav-btn text-gray-400 hover:text-white hover:bg-white/5 px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 hidden">
                 <i class="fa-solid fa-user-shield w-5 text-center text-red-500"></i> Admin Paneli
             </a>
@@ -806,9 +806,9 @@ PANEL_PAGE_HTML = """
     </div>
 
     <script>
-        const API_URL = "/api";
+        const API_URL = "https://eropanel.onrender.com/api";
         
-        const currentUser = JSON.parse(localStorage.getItem('eropanel_current_user'));
+        let currentUser = JSON.parse(localStorage.getItem('eropanel_current_user'));
         if (!currentUser) {
             window.location.href = '/'; 
         }
