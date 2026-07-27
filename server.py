@@ -168,7 +168,7 @@ LOGIN_PAGE_HTML = """
                     document.getElementById('step-register-fields').classList.add('hidden');
                     document.getElementById('step-verify-fields').classList.remove('hidden');
                     document.getElementById('verify-email-text').innerText = email;
-                    showToast('Kod gönderildi!');
+                    showToast('Kod Gmail adresinize gönderildi!');
                 } else { 
                     showToast(data.error || 'Hata oluştu', 'error'); 
                 }
@@ -193,7 +193,7 @@ LOGIN_PAGE_HTML = """
                 });
                 const data = await res.json();
                 if(res.ok) {
-                    showToast('Kayıt başarılı!');
+                    showToast('Kayıt başarılı! Giriş yapabilirsiniz.');
                     switchTab('login');
                 } else { 
                     showToast(data.error || 'Kod hatalı!', 'error'); 
@@ -308,45 +308,15 @@ PANEL_PAGE_HTML = """
 
             <div class="pt-5 pb-2 px-4 text-[10px] font-bold text-textMuted uppercase tracking-widest">Sorgu Panelleri</div>
             
-            <button onclick="toggleAccordion('acc-mernis')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl text-sm transition-all">
-                <div class="flex items-center gap-3"><i class="fa-solid fa-id-card w-5 text-center"></i> Kimlik Çözümleri</div>
-                <i id="acc-mernis-icon" class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"></i>
-            </button>
-            <div id="acc-mernis" class="pl-11 space-y-1 mt-1 hidden">
-                <a href="#" onclick="openMenu(event, 'panel-tc')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">TC Detay Sorgu</a>
-                <a href="#" onclick="openMenu(event, 'panel-adsoyad')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Ad Soyad (Kapsamlı)</a>
-            </div>
-
-            <!-- Aile & Sülale -->
-            <button onclick="toggleAccordion('acc-aile')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl text-sm transition-all">
-                <div class="flex items-center gap-3"><i class="fa-solid fa-sitemap w-5 text-center"></i> Aile & Sülale</div>
-                <i id="acc-aile-icon" class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"></i>
-            </button>
-            <div id="acc-aile" class="pl-11 space-y-1 mt-1 hidden">
-                <a href="#" onclick="openMenu(event, 'panel-aile')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Aile Sorgu</a>
-                <a href="#" onclick="openMenu(event, 'panel-sulale')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Sülale Sorgu</a>
-                <a href="#" onclick="openMenu(event, 'panel-cocuk')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Çocuk Sorgu</a>
-            </div>
-
-            <!-- İletişim & GSM -->
-            <button onclick="toggleAccordion('acc-gsm')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl text-sm transition-all">
-                <div class="flex items-center gap-3"><i class="fa-solid fa-tower-cell w-5 text-center"></i> İletişim & GSM</div>
-                <i id="acc-gsm-icon" class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"></i>
-            </button>
-            <div id="acc-gsm" class="pl-11 space-y-1 mt-1 hidden">
-                <a href="#" onclick="openMenu(event, 'panel-gsmtc')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">GSM'den TC Bulma</a>
-                <a href="#" onclick="openMenu(event, 'panel-tcgsm')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">TC'den GSM Bulma</a>
-            </div>
-
-            <!-- Kurum & Diğer -->
-            <button onclick="toggleAccordion('acc-kurum')" class="w-full flex items-center justify-between text-gray-400 hover:text-white hover:bg-white/5 px-4 py-2.5 rounded-xl text-sm transition-all">
-                <div class="flex items-center gap-3"><i class="fa-solid fa-building-columns w-5 text-center"></i> Kurum & Diğer</div>
-                <i id="acc-kurum-icon" class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"></i>
-            </button>
-            <div id="acc-kurum" class="pl-11 space-y-1 mt-1 hidden">
-                <a href="#" onclick="openMenu(event, 'panel-adres')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">Açık Adres Sorgu</a>
-                <a href="#" onclick="openMenu(event, 'panel-isyeri')" class="sub-nav-btn block text-gray-400 hover:text-white text-xs py-2 transition-colors">İşyeri Bilgisi Sorgu</a>
-            </div>
+            <a href="#" onclick="openMenu(event, 'panel-tc')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">TC Detay Sorgu</a>
+            <a href="#" onclick="openMenu(event, 'panel-adsoyad')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">Ad Soyad Sorgu</a>
+            <a href="#" onclick="openMenu(event, 'panel-aile')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">Aile Sorgu</a>
+            <a href="#" onclick="openMenu(event, 'panel-sulale')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">Sülale Sorgu</a>
+            <a href="#" onclick="openMenu(event, 'panel-cocuk')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">Çocuk Sorgu</a>
+            <a href="#" onclick="openMenu(event, 'panel-gsmtc')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">GSM'den TC</a>
+            <a href="#" onclick="openMenu(event, 'panel-tcgsm')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">TC'den GSM</a>
+            <a href="#" onclick="openMenu(event, 'panel-adres')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">Adres Sorgu</a>
+            <a href="#" onclick="openMenu(event, 'panel-isyeri')" class="sub-nav-btn block text-gray-400 hover:text-white px-4 py-2.5 rounded-xl text-sm transition-colors">İşyeri Sorgu</a>
 
             <button onclick="logout()" class="w-full text-left text-accentDanger hover:text-white hover:bg-accentDanger/10 px-4 py-3 rounded-xl text-sm transition-all flex items-center gap-3 mt-4">
                 <i class="fa-solid fa-right-from-bracket w-5 text-center"></i> Çıkış Yap
@@ -502,10 +472,6 @@ PANEL_PAGE_HTML = """
             if(window.innerWidth < 1024) toggleMobileSidebar();
         }
 
-        function toggleAccordion(id) {
-            document.getElementById(id).classList.toggle('hidden');
-        }
-
         window.addEventListener('DOMContentLoaded', async () => {
             if (currentUser) {
                 document.getElementById('sidebar-display-name').innerText = currentUser.username;
@@ -595,17 +561,15 @@ def send_code():
     msg.attach(MIMEText(html, "html"))
 
     try:
-        # Render sunucularında bağlantı zaman aşımını önlemek için timeout tanımlı SMTP bağlantısı
-        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+        # TLS ile Güvenli ve Tam Uyumlu SMTP Bağlantısı
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, email, msg.as_string())
         server.quit()
-        return jsonify({"success": True, "message": "Kod gönderildi."})
+        return jsonify({"success": True, "message": "Kod başarıyla gönderildi."})
     except Exception as e:
-        # Mail gitmese bile test aşamasında kayıt sürecinin takılmaması için alternatif log
-        print(f"Mail Hatası (Simüle Edildi): {str(e)}")
-        return jsonify({"success": True, "message": "Kod gönderildi."})
+        return jsonify({"success": False, "error": "E-posta gönderilemedi, bağlantı reddedildi."}), 500
 
 @app.route('/api/verify-and-register', methods=['POST'])
 def verify_and_register():
@@ -614,6 +578,9 @@ def verify_and_register():
     email = data.get('email', '').strip().lower()
     password = data.get('password')
     code = data.get('code')
+
+    if verification_codes.get(email) != code:
+        return jsonify({"success": False, "error": "Kod hatalı!"}), 400
 
     new_user = {
         "username": username,
@@ -642,7 +609,6 @@ def get_stats():
         "database_records": system_stats["database_records"]
     })
 
-# Tüm Sorgu Endpointleri
 def proxy_request(url):
     try:
         resp = requests.get(url, timeout=5)
